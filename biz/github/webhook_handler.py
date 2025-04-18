@@ -7,8 +7,6 @@ import requests
 
 from biz.utils.log import logger
 
-# 从环境变量中获取支持的文件扩展名
-SUPPORTED_EXTENSIONS = os.getenv('SUPPORTED_EXTENSIONS', '.java,.py,.php').split(',')
 
 
 def filter_changes(changes: list):
@@ -16,6 +14,9 @@ def filter_changes(changes: list):
     过滤数据，只保留支持的文件类型以及必要的字段信息
     专门处理GitHub格式的变更
     '''
+    # 从环境变量中获取支持的文件扩展名
+    supported_extensions = os.getenv('SUPPORTED_EXTENSIONS', '.java,.py,.php').split(',')
+    
     # 筛选出未被删除的文件
     not_deleted_changes = []
     for change in changes:
@@ -37,7 +38,7 @@ def filter_changes(changes: list):
                     
         not_deleted_changes.append(change)
     
-    logger.info(f"SUPPORTED_EXTENSIONS: {SUPPORTED_EXTENSIONS}")
+    logger.info(f"SUPPORTED_EXTENSIONS: {supported_extensions}")
     logger.info(f"After filtering deleted files: {not_deleted_changes}")
     
     # 过滤 `new_path` 以支持的扩展名结尾的元素, 仅保留diff和new_path字段
@@ -47,7 +48,7 @@ def filter_changes(changes: list):
             'new_path': item['new_path']
         }
         for item in not_deleted_changes
-        if any(item.get('new_path', '').endswith(ext) for ext in SUPPORTED_EXTENSIONS)
+        if any(item.get('new_path', '').endswith(ext) for ext in supported_extensions)
     ]
     logger.info(f"After filtering by extension: {filtered_changes}")
     return filtered_changes

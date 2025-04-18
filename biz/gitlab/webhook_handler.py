@@ -7,14 +7,14 @@ import requests
 
 from biz.utils.log import logger
 
-# 从环境变量中获取支持的文件扩展名
-SUPPORTED_EXTENSIONS = os.getenv('SUPPORTED_EXTENSIONS', '.java,.py,.php').split(',')
-
 
 def filter_changes(changes: list):
     '''
     过滤数据，只保留支持的文件类型以及必要的字段信息
     '''
+    # 从环境变量中获取支持的文件扩展名
+    supported_extensions = os.getenv('SUPPORTED_EXTENSIONS', '.java,.py,.php').split(',')
+
     filter_deleted_files_changes = [change for change in changes if change.get("deleted_file") == False]
 
     # 过滤 `new_path` 以支持的扩展名结尾的元素, 仅保留diff和new_path字段
@@ -24,7 +24,7 @@ def filter_changes(changes: list):
             'new_path': item['new_path']
         }
         for item in filter_deleted_files_changes
-        if any(item.get('new_path', '').endswith(ext) for ext in SUPPORTED_EXTENSIONS)
+        if any(item.get('new_path', '').endswith(ext) for ext in supported_extensions)
     ]
     return filtered_changes
 

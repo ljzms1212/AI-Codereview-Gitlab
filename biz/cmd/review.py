@@ -3,6 +3,7 @@ from dotenv import load_dotenv
 from biz.cmd.func.branch import BranchReviewFunc
 from biz.cmd.func.complexity import ComplexityReviewFunc
 from biz.cmd.func.directory import DirectoryReviewFunc
+from biz.cmd.func.mysql import MySQLReviewFunc
 
 
 def welcome_message():
@@ -14,6 +15,7 @@ def get_func_choice():
         "1": ("Review 目录结构规范", DirectoryReviewFunc),
         "2": ("Review 代码分支命名规范", BranchReviewFunc),
         "3": ("Review 代码复杂度", ComplexityReviewFunc),
+        "4": ("Review MySQL 数据库表结构", MySQLReviewFunc),
     }
 
     print("📌 请选择功能:")
@@ -21,10 +23,10 @@ def get_func_choice():
         print(f"{key}. {desc}")
 
     while True:
-        choice = input("请输入数字 (1-3): ").strip()
+        choice = input("请输入数字 (1-4): ").strip()
         if choice in options:
             return options[choice][1]  # 返回对应的类
-        print("❌ 无效的选择，请输入 1-3")
+        print("❌ 无效的选择，请输入 1-4")
 
 
 if __name__ == "__main__":
