@@ -13,6 +13,9 @@ event_manager = {
 
 # 定义事件处理函数
 def on_merge_request_reviewed(mr_review_entity: MergeRequestReviewEntity):
+    # 记录到数据库
+    ReviewService().insert_mr_review_log(mr_review_entity)
+
     # 发送IM消息通知
     im_msg = f"""
 ### 🔀 {mr_review_entity.project_name}: Merge Request
@@ -35,11 +38,11 @@ def on_merge_request_reviewed(mr_review_entity: MergeRequestReviewEntity):
                                   project_name=mr_review_entity.project_name,
                                   url_slug=mr_review_entity.url_slug)
 
-    # 记录到数据库
-    ReviewService().insert_mr_review_log(mr_review_entity)
-
 
 def on_push_reviewed(entity: PushReviewEntity):
+    # 记录到数据库
+    ReviewService().insert_push_review_log(entity)
+
     # 发送IM消息通知
     im_msg = f"### 🚀 {entity.project_name}: Push\n\n"
     im_msg += "#### 提交记录:\n"
@@ -61,9 +64,6 @@ def on_push_reviewed(entity: PushReviewEntity):
     notifier.send_notification(content=im_msg, msg_type='markdown',
                                   title=f"{entity.project_name} Push Event", project_name=entity.project_name,
                                   url_slug=entity.url_slug)
-
-    # 记录到数据库
-    ReviewService().insert_push_review_log(entity)
 
 
 # 连接事件处理函数到事件信号

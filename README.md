@@ -109,7 +109,29 @@ pip install -r requirements.txt
 
 同 Docker 部署方案中的.env 文件配置。
 
-**4. 启动服务**
+另外，需要配置MySQL数据库连接信息：
+
+```bash
+# 复制环境变量示例文件
+cp conf/env.example conf/.env
+
+# 编辑 .env 文件，添加或修改数据库配置
+MYSQL_HOST=localhost
+MYSQL_PORT=3306
+MYSQL_USER=root
+MYSQL_PASSWORD=your_password_here
+MYSQL_DATABASE=ai_codereview
+MYSQL_CHARSET=utf8mb4
+```
+
+**4. 初始化数据库**
+
+```bash
+# 运行数据库初始化脚本
+python -m biz.service.init_db
+```
+
+**5. 启动服务**
 
 - 启动API服务：
 
