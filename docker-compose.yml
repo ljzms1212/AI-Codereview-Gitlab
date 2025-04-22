@@ -9,7 +9,7 @@ services:
       - "5001:5001"
       - "5002:5002"
     volumes:
-      - ./data:/app/data
+      # - ./data:/app/data
       - ./log:/app/log
     env_file:
       - ./conf/.env

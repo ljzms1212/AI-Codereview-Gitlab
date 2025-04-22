@@ -1,6 +1,7 @@
 import pymysql
 import pandas as pd
 from pymysql.cursors import DictCursor
+from sqlalchemy import create_engine, text
 
 from biz.entity.review_entity import MergeRequestReviewEntity, PushReviewEntity
 from biz.service.db_config import DB_CONFIG
@@ -14,6 +15,19 @@ class ReviewService:
         if config.get('cursorclass') == 'DictCursor':
             config['cursorclass'] = pymysql.cursors.DictCursor
         return pymysql.connect(**config)
+    
+    @staticmethod
+    def get_sqlalchemy_engine():
+        """获取SQLAlchemy引擎"""
+        config = DB_CONFIG.copy()
+        if 'cursorclass' in config:
+            del config['cursorclass']
+        
+        connection_string = (
+            f"mysql+pymysql://{config['user']}:{config['password']}@"
+            f"{config['host']}:{config['port']}/{config['database']}?charset={config['charset']}"
+        )
+        return create_engine(connection_string)
 
     @staticmethod
     def init_db():
@@ -90,43 +104,48 @@ class ReviewService:
                            updated_at_lte: int = None) -> pd.DataFrame:
         """获取符合条件的合并请求审核日志"""
         try:
-            conn = ReviewService.get_connection()
+            engine = ReviewService.get_sqlalchemy_engine()
             query = """
                 SELECT project_name, author, source_branch, target_branch, updated_at, commit_messages, score, url, review_result
                 FROM mr_review_log
                 WHERE 1=1
             """
-            params = []
+            params = {}
+            param_index = 0
 
             if authors:
-                placeholders = ','.join(['%s'] * len(authors))
+                placeholders = ','.join([f':author{i}' for i in range(len(authors))])
                 query += f" AND author IN ({placeholders})"
-                params.extend(authors)
+                for i, author in enumerate(authors):
+                    params[f'author{i}'] = author
 
             if project_names:
-                placeholders = ','.join(['%s'] * len(project_names))
+                placeholders = ','.join([f':project{i}' for i in range(len(project_names))])
                 query += f" AND project_name IN ({placeholders})"
-                params.extend(project_names)
+                for i, project in enumerate(project_names):
+                    params[f'project{i}'] = project
 
             if updated_at_gte is not None:
-                query += " AND updated_at >= %s"
-                params.append(updated_at_gte)
+                query += " AND updated_at >= :updated_at_gte"
+                params['updated_at_gte'] = updated_at_gte
 
             if updated_at_lte is not None:
-                query += " AND updated_at <= %s"
-                params.append(updated_at_lte)
+                query += " AND updated_at <= :updated_at_lte"
+                params['updated_at_lte'] = updated_at_lte
                 
             query += " ORDER BY updated_at DESC"
             
-            # 使用pandas读取SQL查询结果
-            df = pd.read_sql(query, conn, params=params)
+            # 使用pandas读取SQL查询结果，使用SQLAlchemy引擎
+            df = pd.read_sql(text(query), engine, params=params)
+            
+            # 确保score列为数值类型
+            if 'score' in df.columns and not df.empty:
+                df['score'] = pd.to_numeric(df['score'], errors='coerce')
+                
             return df
-        except pymysql.Error as e:
+        except Exception as e:
             print(f"获取审核日志失败: {e}")
             return pd.DataFrame()
-        finally:
-            if conn:
-                conn.close()
 
     @staticmethod
     def insert_push_review_log(entity: PushReviewEntity):
@@ -155,43 +174,47 @@ class ReviewService:
                              updated_at_lte: int = None) -> pd.DataFrame:
         """获取符合条件的推送审核日志"""
         try:
-            conn = ReviewService.get_connection()
+            engine = ReviewService.get_sqlalchemy_engine()
             query = """
                 SELECT project_name, author, branch, updated_at, commit_messages, score, review_result
                 FROM push_review_log
                 WHERE 1=1
             """
-            params = []
+            params = {}
 
             if authors:
-                placeholders = ','.join(['%s'] * len(authors))
+                placeholders = ','.join([f':author{i}' for i in range(len(authors))])
                 query += f" AND author IN ({placeholders})"
-                params.extend(authors)
+                for i, author in enumerate(authors):
+                    params[f'author{i}'] = author
 
             if project_names:
-                placeholders = ','.join(['%s'] * len(project_names))
+                placeholders = ','.join([f':project{i}' for i in range(len(project_names))])
                 query += f" AND project_name IN ({placeholders})"
-                params.extend(project_names)
+                for i, project in enumerate(project_names):
+                    params[f'project{i}'] = project
 
             if updated_at_gte is not None:
-                query += " AND updated_at >= %s"
-                params.append(updated_at_gte)
+                query += " AND updated_at >= :updated_at_gte"
+                params['updated_at_gte'] = updated_at_gte
 
             if updated_at_lte is not None:
-                query += " AND updated_at <= %s"
-                params.append(updated_at_lte)
+                query += " AND updated_at <= :updated_at_lte"
+                params['updated_at_lte'] = updated_at_lte
                 
             query += " ORDER BY updated_at DESC"
             
-            # 使用pandas读取SQL查询结果
-            df = pd.read_sql(query, conn, params=params)
+            # 使用pandas读取SQL查询结果，使用SQLAlchemy引擎和text()函数
+            df = pd.read_sql(text(query), engine, params=params)
+            
+            # 确保score列为数值类型
+            if 'score' in df.columns and not df.empty:
+                df['score'] = pd.to_numeric(df['score'], errors='coerce')
+                
             return df
-        except pymysql.Error as e:
+        except Exception as e:
             print(f"获取推送审核日志失败: {e}")
             return pd.DataFrame()
-        finally:
-            if conn:
-                conn.close()
 
 
 # 初始化数据库

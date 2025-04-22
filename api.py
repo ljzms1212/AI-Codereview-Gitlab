@@ -19,6 +19,7 @@ from biz.utils.queue import handle_queue
 from biz.utils.reporter import Reporter
 
 from biz.utils.config_checker import check_config
+from sqlalchemy import text
 load_dotenv("conf/.env")
 api_app = Flask(__name__)
 

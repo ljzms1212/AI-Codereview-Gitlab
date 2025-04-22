@@ -104,23 +104,27 @@ def generate_project_score_chart(df):
         st.info("没有数据可供展示")
         return
 
-    # 计算每个项目的平均分数
-    project_scores = df.groupby('project_name')['score'].mean().reset_index()
-    project_scores.columns = ['project_name', 'average_score']
+    try:
+        # 计算每个项目的平均分数
+        project_scores = df.groupby('project_name')['score'].mean().reset_index()
+        project_scores.columns = ['project_name', 'average_score']
 
-    # 生成颜色列表，每个项目一个颜色
-    # colors = plt.cm.get_cmap('Accent', len(project_scores))  # 使用'tab20'颜色映射，适合分类数据
-    colors = plt.colormaps['Accent'].resampled(len(project_scores))
-    # 显示平均分数柱状图
-    fig2, ax2 = plt.subplots(figsize=(10, 6))
-    ax2.bar(
-        project_scores['project_name'],
-        project_scores['average_score'],
-        color=[colors(i) for i in range(len(project_scores))]
-    )
-    plt.xticks(rotation=45, ha='right', fontsize=26)
-    plt.tight_layout()
-    st.pyplot(fig2)
+        # 生成颜色列表，每个项目一个颜色
+        # colors = plt.cm.get_cmap('Accent', len(project_scores))  # 使用'tab20'颜色映射，适合分类数据
+        colors = plt.colormaps['Accent'].resampled(len(project_scores))
+        # 显示平均分数柱状图
+        fig2, ax2 = plt.subplots(figsize=(10, 6))
+        ax2.bar(
+            project_scores['project_name'],
+            project_scores['average_score'],
+            color=[colors(i) for i in range(len(project_scores))]
+        )
+        plt.xticks(rotation=45, ha='right', fontsize=26)
+        plt.tight_layout()
+        st.pyplot(fig2)
+    except Exception as e:
+        print(f"生成项目平均分数图表失败: {e}")
+        st.error("生成项目平均分数图表失败，请检查数据")
 
 
 # 生成人员提交数量图表
@@ -153,22 +157,26 @@ def generate_author_score_chart(df):
         st.info("没有数据可供展示")
         return
 
-    # 计算每个人员的平均分数
-    author_scores = df.groupby('author')['score'].mean().reset_index()
-    author_scores.columns = ['author', 'average_score']
+    try:
+        # 计算每个人员的平均分数
+        author_scores = df.groupby('author')['score'].mean().reset_index()
+        author_scores.columns = ['author', 'average_score']
 
-    # 显示平均分数柱状图
-    fig2, ax2 = plt.subplots(figsize=(10, 6))
-    # 生成颜色列表，每个项目一个颜色
-    colors = plt.colormaps['Pastel1'].resampled(len(author_scores))
-    ax2.bar(
-        author_scores['author'],
-        author_scores['average_score'],
-        color=[colors(i) for i in range(len(author_scores))]
-    )
-    plt.xticks(rotation=45, ha='right', fontsize=26)
-    plt.tight_layout()
-    st.pyplot(fig2)
+        # 显示平均分数柱状图
+        fig2, ax2 = plt.subplots(figsize=(10, 6))
+        # 生成颜色列表，每个项目一个颜色
+        colors = plt.colormaps['Pastel1'].resampled(len(author_scores))
+        ax2.bar(
+            author_scores['author'],
+            author_scores['average_score'],
+            color=[colors(i) for i in range(len(author_scores))]
+        )
+        plt.xticks(rotation=45, ha='right', fontsize=26)
+        plt.tight_layout()
+        st.pyplot(fig2)
+    except Exception as e:
+        print(f"生成人员平均分数图表失败: {e}")
+        st.error("生成人员平均分数图表失败，请检查数据")
 
 
 # 主要内容
@@ -220,7 +228,11 @@ def main_page():
             )
 
             total_records = len(df)
-            average_score = df["score"].mean() if not df.empty else 0
+            try:
+                average_score = df["score"].mean() if not df.empty else 0
+            except Exception as e:
+                print(f"计算平均分失败: {e}")
+                average_score = 0
             st.markdown(f"**总记录数:** {total_records}，**平均分:** {average_score:.2f}")
 
             # 创建2x2网格布局展示四个图表
