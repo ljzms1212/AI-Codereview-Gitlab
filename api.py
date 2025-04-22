@@ -24,7 +24,7 @@ api_app = Flask(__name__)
 
 
 
-PUSH_REVIEW_ENABLED = os.environ.get('PUSH_REVIEW_ENABLED', '0') == '1'
+push_review_enabled = os.environ.get('PUSH_REVIEW_ENABLED', '0') == '1'
 
 
 @api_app.route('/')
@@ -43,7 +43,7 @@ def daily_report():
     end_time = datetime.now().replace(hour=23, minute=59, second=59, microsecond=0).timestamp()
 
     try:
-        if PUSH_REVIEW_ENABLED:
+        if push_review_enabled:
             df = ReviewService().get_push_review_logs(updated_at_gte=start_time, updated_at_lte=end_time)
         else:
             df = ReviewService().get_mr_review_logs(updated_at_gte=start_time, updated_at_lte=end_time)

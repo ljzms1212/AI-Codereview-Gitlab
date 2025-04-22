@@ -10,10 +10,10 @@ from biz.utils.code_reviewer import CodeReviewer
 from biz.utils.im import notifier
 from biz.utils.log import logger
 
-PUSH_REVIEW_ENABLED = os.environ.get('PUSH_REVIEW_ENABLED', '0') == '1'
 
 
 def handle_push_event(webhook_data: dict, gitlab_token: str, gitlab_url: str, gitlab_url_slug: str):
+    push_review_enabled = os.environ.get('PUSH_REVIEW_ENABLED', '0') == '1'
     try:
         handler = PushHandler(webhook_data, gitlab_token, gitlab_url)
         logger.info('Push Hook event received')
@@ -24,7 +24,7 @@ def handle_push_event(webhook_data: dict, gitlab_token: str, gitlab_url: str, gi
 
         review_result = None
         score = 0
-        if PUSH_REVIEW_ENABLED:
+        if push_review_enabled:
             # 获取PUSH的changes
             changes = handler.get_push_changes()
             logger.info('changes: %s', changes)
@@ -119,6 +119,7 @@ def handle_merge_request_event(webhook_data: dict, gitlab_token: str, gitlab_url
         logger.error('出现未知错误: %s', error_message)
 
 def handle_github_push_event(webhook_data: dict, github_token: str, github_url: str, github_url_slug: str):
+    push_review_enabled = os.environ.get('PUSH_REVIEW_ENABLED', '0') == '1'
     try:
         handler = GithubPushHandler(webhook_data, github_token, github_url)
         logger.info('GitHub Push event received')
@@ -129,7 +130,7 @@ def handle_github_push_event(webhook_data: dict, github_token: str, github_url: 
 
         review_result = None
         score = 0
-        if PUSH_REVIEW_ENABLED:
+        if push_review_enabled:
             # 获取PUSH的changes
             changes = handler.get_push_changes()
             logger.info('changes: %s', changes)
