@@ -34,4 +34,11 @@ class PushReviewEntity:
     def commit_messages(self):
         # 合并所有 commit 的 message 属性，用分号分隔
         return "; ".join(commit["message"].strip() for commit in self.commits)
+        
+    def timestamp_to_datetime(self):
+        """将时间戳转换为datetime对象"""
+        import datetime
+        if self.updated_at:
+            return datetime.datetime.fromtimestamp(self.updated_at)
+        return None
 

@@ -2,6 +2,7 @@ import pymysql
 import pandas as pd
 from pymysql.cursors import DictCursor
 from sqlalchemy import create_engine, text
+import datetime
 
 from biz.entity.review_entity import MergeRequestReviewEntity, PushReviewEntity
 from biz.service.db_config import DB_CONFIG
@@ -61,7 +62,7 @@ class ReviewService:
                         project_name VARCHAR(255),
                         author VARCHAR(100),
                         branch VARCHAR(255),
-                        updated_at BIGINT,
+                        updated_at DATETIME,
                         commit_messages TEXT,
                         score INT,
                         review_result TEXT,
@@ -153,13 +154,15 @@ class ReviewService:
         try:
             conn = ReviewService.get_connection()
             with conn.cursor() as cursor:
+                # 将时间戳转换为datetime对象
+                updated_at_datetime = datetime.datetime.fromtimestamp(entity.updated_at)
                 cursor.execute('''
                     INSERT INTO push_review_log 
                     (project_name, author, branch, updated_at, commit_messages, score, review_result)
                     VALUES (%s, %s, %s, %s, %s, %s, %s)
                 ''', (
                     entity.project_name, entity.author, entity.branch,
-                    entity.updated_at, entity.commit_messages, entity.score,
+                    updated_at_datetime, entity.commit_messages, entity.score,
                     entity.review_result
                 ))
                 conn.commit()
@@ -195,12 +198,16 @@ class ReviewService:
                     params[f'project{i}'] = project
 
             if updated_at_gte is not None:
+                # 将时间戳转换为datetime对象
+                updated_at_gte_datetime = datetime.datetime.fromtimestamp(updated_at_gte)
                 query += " AND updated_at >= :updated_at_gte"
-                params['updated_at_gte'] = updated_at_gte
+                params['updated_at_gte'] = updated_at_gte_datetime
 
             if updated_at_lte is not None:
+                # 将时间戳转换为datetime对象
+                updated_at_lte_datetime = datetime.datetime.fromtimestamp(updated_at_lte)
                 query += " AND updated_at <= :updated_at_lte"
-                params['updated_at_lte'] = updated_at_lte
+                params['updated_at_lte'] = updated_at_lte_datetime
                 
             query += " ORDER BY updated_at DESC"
             
