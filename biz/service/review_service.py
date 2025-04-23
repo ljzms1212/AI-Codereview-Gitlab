@@ -179,7 +179,7 @@ class ReviewService:
         try:
             engine = ReviewService.get_sqlalchemy_engine()
             query = """
-                SELECT project_name, author, branch, updated_at, commit_messages, score, review_result
+                SELECT id, project_name, author, branch, updated_at, commit_messages, score, review_result
                 FROM push_review_log
                 WHERE 1=1
             """
@@ -218,10 +218,49 @@ class ReviewService:
             if 'score' in df.columns and not df.empty:
                 df['score'] = pd.to_numeric(df['score'], errors='coerce')
                 
+            # 添加格式化后的时间列
+            if 'updated_at' in df.columns and not df.empty:
+                df['updated_at_format'] = df['updated_at'].apply(
+                    lambda dt: dt.strftime('%Y-%m-%d %H:%M:%S') if isinstance(dt, datetime.datetime) else str(dt)
+                )
+                
             return df
         except Exception as e:
             print(f"获取推送审核日志失败: {e}")
             return pd.DataFrame()
+
+    @staticmethod
+    def get_push_review_result_by_id(review_id: int) -> dict:
+        """根据ID获取Push评审结果"""
+        try:
+            conn = ReviewService.get_connection()
+            with conn.cursor() as cursor:
+                cursor.execute('''
+                    SELECT id, project_name, author, branch, updated_at, commit_messages, score, review_result
+                    FROM push_review_log
+                    WHERE id = %s
+                ''', (review_id,))
+                result = cursor.fetchone()
+                
+                if result:
+                    # 保存原始的日期时间字符串
+                    original_updated_at = result['updated_at']
+                    
+                    # 处理datetime类型，转为标准格式字符串
+                    if isinstance(result['updated_at'], datetime.datetime):
+                        result['updated_at'] = result['updated_at'].strftime('%Y-%m-%d %H:%M:%S')
+                    
+                    # 添加格式化后的时间字段
+                    result['updated_at_format'] = result['updated_at']
+                        
+                    return result
+                return None
+        except pymysql.Error as e:
+            print(f"获取评审结果失败: {e}")
+            return None
+        finally:
+            if conn:
+                conn.close()
 
 
 # 初始化数据库

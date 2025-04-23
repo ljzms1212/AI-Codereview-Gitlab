@@ -270,7 +270,7 @@ def main_page():
 
     # Push 数据展示
     if show_push_tab:
-        push_columns = ["project_name", "author", "branch", "updated_at", "commit_messages", "score"]
+        push_columns = ["id", "project_name", "author", "branch", "updated_at", "commit_messages", "score"]
 
         push_column_config = {
             "score": st.column_config.ProgressColumn(
