@@ -337,6 +337,37 @@ def push_logs_page():
                 </div>
             </div>
             
+            <div class="card mb-4">
+                <div class="card-header">数据列表</div>
+                <div class="card-body">
+                    <div id="loading-indicator" class="text-center my-3" style="display: none;">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">加载中...</span>
+                        </div>
+                        <p class="mt-2">正在查询数据，请稍候...</p>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead>
+                                <tr>
+                                    <th class="project-column">项目名称</th>
+                                    <th class="author-column">作者</th>
+                                    <th class="time-column">更新时间</th>
+                                    <th class="message-column">提交信息</th>
+                                    <th class="score-column">分数</th>
+                                    <th class="action-column">查看评审</th>
+                                </tr>
+                            </thead>
+                            <tbody id="logs-table-body">
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="text-center mt-4">
+                        <div id="pagination" class="btn-group"></div>
+                    </div>
+                </div>
+            </div>
+            
             <div class="row mb-4">
                 <div class="col-md-6">
                     <div class="card">
@@ -374,32 +405,6 @@ def push_logs_page():
                     </div>
                 </div>
             </div>
-            
-            <div class="card mb-4">
-                <div class="card-header">数据列表</div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-striped table-hover">
-                            <thead>
-                                <tr>
-                                    <th class="project-column">项目名称</th>
-                                    <th class="author-column">作者</th>
-                                    <th class="time-column">更新时间</th>
-                                    <th class="message-column">提交信息</th>
-                                    <th class="score-column">分数</th>
-                                    <th class="action-column">查看评审</th>
-                                </tr>
-                            </thead>
-                            <tbody id="logs-table-body">
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="text-center mb-4">
-                <div id="pagination" class="btn-group"></div>
-            </div>
         </div>
         
         <script>
@@ -429,6 +434,11 @@ def push_logs_page():
                 const author = document.getElementById('author-select').value;
                 const project = document.getElementById('project-select').value;
                 
+                // 显示加载指示器，隐藏表格和分页
+                document.getElementById('loading-indicator').style.display = 'block';
+                document.querySelector('.table-responsive').style.display = 'none';
+                document.getElementById('pagination').parentElement.style.display = 'none';
+                
                 let url = '/api/review/push_logs?';
                 if (startDate) url += `start_date=${startDate}&`;
                 if (endDate) url += `end_date=${endDate}&`;
@@ -440,10 +450,21 @@ def push_logs_page():
                     .then(data => {
                         allData = data;
                         currentPage = 1;
+                        
+                        // 隐藏加载指示器，显示表格和分页
+                        document.getElementById('loading-indicator').style.display = 'none';
+                        document.querySelector('.table-responsive').style.display = 'block';
+                        document.getElementById('pagination').parentElement.style.display = 'block';
+                        
                         renderTable();
                         renderCharts();
                     })
                     .catch(error => {
+                        // 隐藏加载指示器，显示表格
+                        document.getElementById('loading-indicator').style.display = 'none';
+                        document.querySelector('.table-responsive').style.display = 'block';
+                        document.getElementById('pagination').parentElement.style.display = 'block';
+                        
                         console.error('获取数据失败:', error);
                         alert('获取数据失败，请查看控制台获取详细信息');
                     });
