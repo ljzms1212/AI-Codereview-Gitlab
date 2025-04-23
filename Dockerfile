@@ -16,7 +16,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 RUN mkdir -p log data conf
 COPY biz ./biz
 COPY api.py ./api.py
-COPY ui.py ./ui.py
 COPY conf/prompt_templates.yml ./conf/prompt_templates.yml
 COPY static ./static
 
@@ -25,8 +24,8 @@ CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
 
 FROM base AS app
 COPY conf/supervisord.app.conf /etc/supervisor/conf.d/supervisord.conf
-# 暴露 Flask 和 Streamlit 的端口
-EXPOSE 5001 5002
+# 暴露 Flask 的端口
+EXPOSE 5001
 
 FROM base AS worker
 COPY ./conf/supervisord.worker.conf /etc/supervisor/conf.d/supervisord.conf

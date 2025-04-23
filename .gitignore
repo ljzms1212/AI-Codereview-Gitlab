@@ -9,6 +9,7 @@ data/*
 !data/.gitkeep
 
 conf/.env
+conf/.env.prd
 .pyc
 __pycache__/
 .cursorignore
