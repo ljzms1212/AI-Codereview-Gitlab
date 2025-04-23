@@ -170,6 +170,11 @@ streamlit run ui.py --server.port=5002 --server.address=0.0.0.0
   - 请确保 GitLab 能够访问本系统。
   - 若内网环境受限，建议将系统部署在外网服务器上。
 
+#### 3. 测试项目
+
+您可以使用以下测试项目地址进行系统测试：
+- https://gitlab.colipu.com/web/testgroup/crawler-detect/-/hooks
+
 ### 配置消息推送
 
 #### 1.配置钉钉推送

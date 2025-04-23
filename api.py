@@ -148,7 +148,7 @@ def push_review_result_page(review_id):
                 <div class="row">
                     <div class="col-md-9">
                         <h2 id="project-name"></h2>
-                        <p>作者: <span id="author"></span> | 分支: <span id="branch"></span> | 更新时间: <span id="updated-at"></span></p>
+                        <p>作者: <span id="author"></span> | 更新时间: <span id="updated-at"></span></p>
                         <p>提交信息: <span id="commit-messages"></span></p>
                     </div>
                     <div class="col-md-3">
@@ -190,7 +190,6 @@ def push_review_result_page(review_id):
                     // 填充基本信息
                     document.getElementById('project-name').textContent = data.project_name;
                     document.getElementById('author').textContent = data.author;
-                    document.getElementById('branch').textContent = data.branch;
                     document.getElementById('updated-at').textContent = data.updated_at_format || data.updated_at;
                     document.getElementById('commit-messages').textContent = data.commit_messages;
                     document.getElementById('score').textContent = data.score;
@@ -250,14 +249,11 @@ def push_logs_page():
             .table .author-column {
                 width: 10%;
             }
-            .table .branch-column {
-                width: 10%;
-            }
             .table .time-column {
                 width: 15%;
             }
             .table .message-column {
-                width: 30%;
+                width: 40%;
                 max-width: 300px;
                 white-space: normal;
                 word-break: break-word;
@@ -388,7 +384,6 @@ def push_logs_page():
                                 <tr>
                                     <th class="project-column">项目名称</th>
                                     <th class="author-column">作者</th>
-                                    <th class="branch-column">分支</th>
                                     <th class="time-column">更新时间</th>
                                     <th class="message-column">提交信息</th>
                                     <th class="score-column">分数</th>
@@ -465,7 +460,7 @@ def push_logs_page():
                 
                 if (pageData.length === 0) {
                     const row = document.createElement('tr');
-                    row.innerHTML = '<td colspan="7" class="text-center">没有数据</td>';
+                    row.innerHTML = '<td colspan="6" class="text-center">没有数据</td>';
                     tableBody.appendChild(row);
                     document.getElementById('pagination').innerHTML = '';
                     return;
@@ -477,7 +472,6 @@ def push_logs_page():
                     row.innerHTML = `
                         <td class="project-column">${item.project_name}</td>
                         <td class="author-column">${item.author}</td>
-                        <td class="branch-column">${item.branch}</td>
                         <td class="time-column">${item.updated_at_format || item.updated_at}</td>
                         <td class="message-column">${item.commit_messages}</td>
                         <td class="score-column">
