@@ -22,6 +22,19 @@ def handle_push_event(webhook_data: dict, gitlab_token: str, gitlab_url: str, gi
             logger.error('Failed to get commits')
             return
 
+        # 过滤掉以"Merge branch"开头的提交
+        filtered_commits = []
+        for commit in commits:
+            message = commit.get('message', '').strip()
+            if not message.startswith('Merge branch'):
+                filtered_commits.append(commit)
+        
+        if not filtered_commits:
+            logger.info('所有提交都是合并分支操作，跳过代码审查')
+            return
+            
+        commits = filtered_commits
+        
         review_result = None
         score = 0
         if push_review_enabled:
@@ -128,6 +141,19 @@ def handle_github_push_event(webhook_data: dict, github_token: str, github_url: 
             logger.error('Failed to get commits')
             return
 
+        # 过滤掉以"Merge branch"开头的提交
+        filtered_commits = []
+        for commit in commits:
+            message = commit.get('message', '').strip()
+            if not message.startswith('Merge branch'):
+                filtered_commits.append(commit)
+        
+        if not filtered_commits:
+            logger.info('所有提交都是合并分支操作，跳过代码审查')
+            return
+            
+        commits = filtered_commits
+        
         review_result = None
         score = 0
         if push_review_enabled:
