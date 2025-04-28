@@ -546,6 +546,12 @@ def push_logs_page():
                     projectCountMap[item.project_name]++;
                 });
                 
+                // 按提交次数从高到低排序
+                const sortedProjectCounts = Object.entries(projectCountMap)
+                    .sort((a, b) => b[1] - a[1]);
+                const sortedProjectCountNames = sortedProjectCounts.map(item => item[0]);
+                const sortedProjectCountValues = sortedProjectCounts.map(item => item[1]);
+                
                 const projectCountChart = echarts.init(document.getElementById('project-count-chart'));
                 projectCountChart.setOption({
                     tooltip: {
@@ -553,7 +559,7 @@ def push_logs_page():
                     },
                     xAxis: {
                         type: 'category',
-                        data: Object.keys(projectCountMap),
+                        data: sortedProjectCountNames,
                         axisLabel: {
                             rotate: 45
                         }
@@ -564,7 +570,7 @@ def push_logs_page():
                     series: [{
                         name: '提交次数',
                         type: 'bar',
-                        data: Object.values(projectCountMap)
+                        data: sortedProjectCountValues
                     }]
                 });
                 
@@ -585,6 +591,12 @@ def push_logs_page():
                     projectScoreAvgMap[key] = projectScoreMap[key] / projectScoreCountMap[key];
                 });
                 
+                // 按平均分数从高到低排序
+                const sortedProjectScores = Object.entries(projectScoreAvgMap)
+                    .sort((a, b) => b[1] - a[1]);
+                const sortedProjectScoreNames = sortedProjectScores.map(item => item[0]);
+                const sortedProjectScoreValues = sortedProjectScores.map(item => item[1]);
+                
                 const projectScoreChart = echarts.init(document.getElementById('project-score-chart'));
                 projectScoreChart.setOption({
                     tooltip: {
@@ -592,7 +604,7 @@ def push_logs_page():
                     },
                     xAxis: {
                         type: 'category',
-                        data: Object.keys(projectScoreAvgMap),
+                        data: sortedProjectScoreNames,
                         axisLabel: {
                             rotate: 45
                         }
@@ -604,7 +616,7 @@ def push_logs_page():
                     series: [{
                         name: '平均分数',
                         type: 'bar',
-                        data: Object.values(projectScoreAvgMap)
+                        data: sortedProjectScoreValues
                     }]
                 });
                 
@@ -617,6 +629,12 @@ def push_logs_page():
                     authorCountMap[item.author]++;
                 });
                 
+                // 按提交次数从高到低排序
+                const sortedAuthorCounts = Object.entries(authorCountMap)
+                    .sort((a, b) => b[1] - a[1]);
+                const sortedAuthorCountNames = sortedAuthorCounts.map(item => item[0]);
+                const sortedAuthorCountValues = sortedAuthorCounts.map(item => item[1]);
+                
                 const authorCountChart = echarts.init(document.getElementById('author-count-chart'));
                 authorCountChart.setOption({
                     tooltip: {
@@ -624,7 +642,7 @@ def push_logs_page():
                     },
                     xAxis: {
                         type: 'category',
-                        data: Object.keys(authorCountMap),
+                        data: sortedAuthorCountNames,
                         axisLabel: {
                             rotate: 45
                         }
@@ -635,7 +653,7 @@ def push_logs_page():
                     series: [{
                         name: '提交次数',
                         type: 'bar',
-                        data: Object.values(authorCountMap)
+                        data: sortedAuthorCountValues
                     }]
                 });
                 
@@ -656,6 +674,12 @@ def push_logs_page():
                     authorScoreAvgMap[key] = authorScoreMap[key] / authorScoreCountMap[key];
                 });
                 
+                // 按平均分数从高到低排序
+                const sortedAuthorScores = Object.entries(authorScoreAvgMap)
+                    .sort((a, b) => b[1] - a[1]);
+                const sortedAuthorScoreNames = sortedAuthorScores.map(item => item[0]);
+                const sortedAuthorScoreValues = sortedAuthorScores.map(item => item[1]);
+                
                 const authorScoreChart = echarts.init(document.getElementById('author-score-chart'));
                 authorScoreChart.setOption({
                     tooltip: {
@@ -663,7 +687,7 @@ def push_logs_page():
                     },
                     xAxis: {
                         type: 'category',
-                        data: Object.keys(authorScoreAvgMap),
+                        data: sortedAuthorScoreNames,
                         axisLabel: {
                             rotate: 45
                         }
@@ -675,7 +699,7 @@ def push_logs_page():
                     series: [{
                         name: '平均分数',
                         type: 'bar',
-                        data: Object.values(authorScoreAvgMap)
+                        data: sortedAuthorScoreValues
                     }]
                 });
                 
