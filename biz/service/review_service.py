@@ -3,10 +3,18 @@ import pandas as pd
 from pymysql.cursors import DictCursor
 from sqlalchemy import create_engine, text
 import datetime
+import os
+from dotenv import load_dotenv
 
 from biz.entity.review_entity import MergeRequestReviewEntity, PushReviewEntity
 from biz.service.db_config import DB_CONFIG
+from biz.utils.log import logger
 
+# 加载环境变量
+load_dotenv("conf/.env")
+
+# 获取配置
+SAVE_REVIEW_TO_DB = os.getenv('SAVE_REVIEW_TO_DB', 'false').lower() == 'true'
 
 class ReviewService:
     @staticmethod
@@ -33,6 +41,10 @@ class ReviewService:
     @staticmethod
     def init_db():
         """初始化数据库及表结构"""
+        if not SAVE_REVIEW_TO_DB:
+            logger.info("SAVE_REVIEW_TO_DB=false, 跳过数据库初始化")
+            return
+            
         try:
             conn = ReviewService.get_connection()
             with conn.cursor() as cursor:
@@ -73,7 +85,7 @@ class ReviewService:
                 ''')
                 conn.commit()
         except pymysql.Error as e:
-            print(f"数据库初始化失败: {e}")
+            logger.error(f"数据库初始化失败: {e}")
         finally:
             if conn:
                 conn.close()
@@ -81,6 +93,10 @@ class ReviewService:
     @staticmethod
     def insert_mr_review_log(entity: MergeRequestReviewEntity):
         """插入合并请求审核日志"""
+        if not SAVE_REVIEW_TO_DB:
+            logger.info("SAVE_REVIEW_TO_DB=false, 跳过保存 MR 评审结果")
+            return
+            
         try:
             conn = ReviewService.get_connection()
             with conn.cursor() as cursor:
@@ -95,7 +111,7 @@ class ReviewService:
                 ))
                 conn.commit()
         except pymysql.Error as e:
-            print(f"插入审核日志失败: {e}")
+            logger.error(f"插入审核日志失败: {e}")
         finally:
             if conn:
                 conn.close()
@@ -151,6 +167,10 @@ class ReviewService:
     @staticmethod
     def insert_push_review_log(entity: PushReviewEntity):
         """插入推送审核日志"""
+        if not SAVE_REVIEW_TO_DB:
+            logger.info("SAVE_REVIEW_TO_DB=false, 跳过保存 Push 评审结果")
+            return
+            
         try:
             conn = ReviewService.get_connection()
             with conn.cursor() as cursor:
@@ -167,7 +187,7 @@ class ReviewService:
                 ))
                 conn.commit()
         except pymysql.Error as e:
-            print(f"插入推送审核日志失败: {e}")
+            logger.error(f"插入推送审核日志失败: {e}")
         finally:
             if conn:
                 conn.close()

@@ -5,6 +5,8 @@ from typing import Dict, Any, List
 
 import yaml
 from jinja2 import Template
+import requests
+import json
 
 from biz.llm.factory import Factory
 from biz.utils.log import logger
@@ -16,7 +18,9 @@ class BaseReviewer(abc.ABC):
 
     def __init__(self, prompt_key: str):
         self.client = Factory().getClient()
-        self.prompts = self._load_prompts(prompt_key,os.getenv("REVIEW_STYLE", "professional"))
+        self.prompts = self._load_prompts(
+            prompt_key, os.getenv("REVIEW_STYLE", "professional")
+        )
 
     def _load_prompts(self, prompt_key: str, style="professional") -> Dict[str, Any]:
         """加载提示词配置"""
@@ -85,18 +89,79 @@ class CodeReviewer(BaseReviewer):
             return review_result[11:-3].strip()
         return review_result
 
-    def review_code(self, diffs_text: str, commits_text: str = "") -> str:
+    def review_code(self, changes_text: str, commits_text: str = "") -> str:
         """Review 代码并返回结果"""
-        messages = [
-            self.prompts["system_message"],
-            {
-                "role": "user",
-                "content": self.prompts["user_message"]["content"].format(
-                    diffs_text=diffs_text, commits_text=commits_text
-                ),
-            },
-        ]
-        return self.call_llm(messages)
+        try:
+            # 从提交信息中提取关键词用于知识库查询
+            query_keywords = self._extract_keywords_from_commits(commits_text)
+
+            # 查询知识库
+            knowledge_base = self._query_knowledge_base(query_keywords)
+
+            # 调用 review_code 方法进行代码评审
+            review_result = self.call_llm(
+                [
+                    self.prompts["system_message"],
+                    {
+                        "role": "user",
+                        "content": self.prompts["user_message"]["content"].format(
+                            diffs_text=changes_text,
+                            commits_text=commits_text,
+                            knowledge_base=knowledge_base,
+                        ),
+                    },
+                ]
+            ).strip()
+
+            return review_result
+        except Exception as e:
+            logger.error(f"代码评审失败: {e}")
+            return f"代码评审失败: {str(e)}"
+
+    def _extract_keywords_from_commits(self, commits_text: str) -> str:
+        """从提交信息中提取关键词"""
+
+        # todo 通过(commits、 函数名、注释信息) 提取影响范围的核心关键字, 然后再检索知识库
+        return commits_text
+
+    def _query_knowledge_base(self, query: str) -> str:
+        """查询知识库"""
+        try:
+            if not query:
+                return ""
+
+            knowledge_base_url = os.getenv("KNOWLEDGE_BASE_URL")
+            if not knowledge_base_url:
+                logger.warning("未配置知识库URL环境变量(KNOWLEDGE_BASE_URL)，将跳过知识库查询")
+                return ""
+            response = requests.post(
+                f"{knowledge_base_url}/api/document/search",
+                json={"q": query, "size": 2},
+                headers={"Content-Type": "application/json"},
+                timeout=30,
+            )
+
+            if response.status_code != 200:
+                logger.error(f"知识库查询失败: {response.status_code}")
+                return ""
+
+            result = response.json()
+            if not result.get("success"):
+                logger.error(f"知识库查询失败: {result.get('message')}")
+                return ""
+
+            # 提取并格式化知识库内容
+            knowledge_items = []
+            for item in result["data"]["items"]:
+                title = item["title"]
+                segments = item["segments"]
+                knowledge_items.extend([f"{title}: {segment}" for segment in segments])
+
+            return "\n".join(knowledge_items)
+
+        except Exception as e:
+            logger.error(f"知识库查询失败: {e}")
+            return ""
 
     @staticmethod
     def parse_review_score(review_text: str) -> int:
@@ -105,4 +170,3 @@ class CodeReviewer(BaseReviewer):
             return 0
         match = re.search(r"总分[:：]\s*(\d+)分?", review_text)
         return int(match.group(1)) if match else 0
-
